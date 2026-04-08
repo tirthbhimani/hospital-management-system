@@ -136,6 +136,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 });
             });
         });
+
+        
+document.addEventListener("DOMContentLoaded", () => {
+    const roleInput = document.getElementById("role");
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const registerBox = document.getElementById("registerBox");
+
+    document.querySelectorAll(".social-login button").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const role = btn.dataset.role;
+
+            roleInput.value = role;
+            usernameInput.placeholder = role.charAt(0).toUpperCase() + role.slice(1) + " Username";
+            passwordInput.placeholder = role.charAt(0).toUpperCase() + role.slice(1) + " Password";
+
+            // ✅ SHOW REGISTER ONLY FOR PATIENT
+            if (role === "patient") {
+                registerBox.style.display = "block";
+            } else {
+                registerBox.style.display = "none";
+            }
+        });
+    });
+});
+
     </script>
 </head>
 
@@ -155,6 +181,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <input type="password" id="password" name="password" placeholder="Doctor Password" required />
             <button type="submit" name="login_user">Login</button>
         </form>
+
+        <div id="registerBox" style="text-align:center; margin-top:15px; display:none;">
+        <p>New Patient?</p>
+        <a href="reg.php">
+        <button type="button" class="btn btn-success">Register Here</button>
+    </a>
+</div>
     </div>
 
     <?php if (isset($_SESSION['login_error'])): ?>

@@ -1,110 +1,54 @@
+<?php
+session_start();
+
+$con = new mysqli("localhost", "root", "", "HMS");
+
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $username = $_SESSION['username'];
+
+    $age = $_POST['age'];
+    $gender = $_POST['gender'];
+    $doctor = $_POST['doctor'];
+    $date = $_POST['date'];
+    $time = $_POST['time'];
+    $reason = $_POST['reason'];
+
+    $stmt = $con->prepare("INSERT INTO appointments 
+    (username, age, gender, doctor_name, appointment_date, appointment_time, reason) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+    $stmt->bind_param("sisssss", 
+        $username,
+        $age,
+        $gender,
+        $doctor,
+        $date,
+        $time,
+        $reason
+    );
+
+    if ($stmt->execute()) {
+        echo "<script>alert('Appointment Booked Successfully');</script>";
+    } else {
+        echo "<script>alert('Error');</script>";
+    }
+}
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CityCare Hospital - Online Appointment Booking</title>
+  <title>Book Appointment</title>
+
+  <!-- SAME CSS AS DASHBOARD -->
+  <link rel="stylesheet" href="doctor_style.css">
+
+  <!-- KEEP YOUR FORM STYLE EXACT -->
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f3f6fa;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* Navbar */
-    .navbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #2193b0;
-      padding: 12px 24px;
-      color: white;
-    }
-
-    .navbar .logo {
-      font-size: 22px;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    .navbar ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 25px;
-    }
-
-    .navbar ul li {
-      position: relative;
-    }
-
-    .navbar a {
-      text-decoration: none;
-      color: white;
-      font-weight: 500;
-      transition: 0.3s;
-    }
-
-    .navbar a:hover {
-      color: #ffd700;
-    }
-
-    .navbar ul li ul {
-      position: absolute;
-      top: 40px;
-      left: 0;
-      background: #0a6e87e4;
-      display: none;
-      flex-direction: column;
-      border-radius: 5px;
-      min-width: 160px;
-      z-index: 1000;
-    }
-
-    .navbar ul li ul li {
-      padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .navbar ul li ul li:last-child {
-      border-bottom: none;
-    }
-
-    .navbar ul li:hover ul {
-      display: flex;
-    }
-
-    .menu-toggle {
-      display: none;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    @media (max-width: 768px) {
-      .navbar ul {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        background-color: #0066cc;
-        position: absolute;
-        top: 60px;
-        left: 0;
-      }
-      .navbar ul.show {
-        display: flex;
-      }
-      .navbar ul li {
-        text-align: center;
-        padding: 10px 0;
-      }
-      .menu-toggle {
-        display: block;
-      }
-    }
-
-    /* Appointment Form */
     .container {
       max-width: 600px;
       margin: 40px auto;
@@ -173,123 +117,125 @@
       text-align: center;
     }
   </style>
+
 </head>
+
 <body>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <div class="logo">🏥 CityCare Hospital</div>
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+<!-- TOPBAR -->
+<div class="topbar">
+    <button class="toggle-btn" id="toggleBtn">☰</button>
+    <h2 style="margin:0;">Book Appointment</h2>
+</div>
 
-    <ul id="menuList">
-      <li><a href="#">Home</a></li>
-      <li><a href="#">About Us</a></li>
-      <li>
-        <a href="#">Departments ▼</a>
-        <ul>
-          <li><a href="#">Cardiology</a></li>
-          <li><a href="#">Orthopedics</a></li>
-          <li><a href="#">Neurology</a></li>
-          <li><a href="#">Pediatrics</a></li>
-        </ul>
-      </li>
-      <li><a href="#">Doctors</a></li>
-      <li><a href="#">Appointments</a></li>
-      <li><a href="#">Contact</a></li>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+    <h3>Patient Panel</h3>
+    <ul>
+        <li><a href="patient_home.php">Home</a></li>
+        <li><a href="appoinment.php">Book Appointment</a></li>
+        <li><a href="my_appointments.php">My Appointments</a></li>
+        <li><a href="view_schedule.php">Doctor Schedule</a></li>
+        <li><a href="view_beds.php">Bed Availability</a></li>
+        <li><a href="index.php">Logout</a></li>
     </ul>
-  </nav>
+</div>
 
-  <!-- Appointment Form -->
+<!-- MAIN CONTENT -->
+<div class="main-content" id="mainContent">
+
   <div class="container">
     <h2>Book Your Appointment</h2>
 
-    <form id="appointmentForm">
-      <label for="patientName">Patient Name:</label>
-      <input type="text" id="patientName" required>
+    <form method="POST" action="">
 
-      <label for="age">Age:</label>
-      <input type="number" id="age" min="1" required>
+  <label>Patient Name:</label>
+  <input type="text" value="<?php echo $_SESSION['username']; ?>" readonly>
 
-      <label for="gender">Gender:</label>
-      <select id="gender" required>
-        <option value="">-- Select Gender --</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
+  <label>Age:</label>
+  <input type="number" name="age" value="" required>
 
-      <label for="doctor">Select Doctor:</label>
-      <select id="doctor" required>
-        <option value="">-- Choose Doctor --</option>
-        <option value="Dr. Meena Sharma - Cardiology">Dr. Meena Sharma - Cardiology</option>
-        <option value="Dr. Raj Patel - Orthopedics">Dr. Raj Patel - Orthopedics</option>
-        <option value="Dr. Priya Nair - Pediatrics">Dr. Priya Nair - Pediatrics</option>
-        <option value="Dr. Sneha Kapoor - Gynecology">Dr. Sneha Kapoor - Gynecology</option>
-      </select>
+  <label>Gender:</label>
+  <select name="gender" required>
+    <option value="">-- Select Gender --</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
 
-      <label for="date">Appointment Date:</label>
-      <input type="date" id="date" required>
+  <label>Doctor:</label>
+  <select name="doctor" required>
+    <option value="">-- Choose Doctor --</option>
+    <option>Dr. Meena Sharma - Cardiology</option>
+    <option>Dr. Raj Patel - Orthopedics</option>
+    <option>Dr. Priya Nair - Pediatrics</option>
+    <option>Dr. Sneha Kapoor - Gynecology</option>
+  </select>
 
-      <label for="time">Preferred Time:</label>
-      <input type="time" id="time" required>
+  <label>Date:</label>
+  <input type="date" name="date" required>
 
-      <label for="reason">Reason for Visit:</label>
-      <textarea id="reason" rows="3" placeholder="Describe symptoms or purpose of visit" required></textarea>
+  <label>Time:</label>
+  <input type="time" name="time" required>
 
-      <button type="submit">Book Appointment</button>
-    </form>
+  <label>Reason:</label>
+  <textarea name="reason" rows="3" required></textarea>
+
+  <button type="submit">Book Appointment</button>
+
+</form>
 
     <div id="message"></div>
   </div>
 
-  <script>
-    // Toggle navbar menu for mobile
-    function toggleMenu() {
-      const menu = document.getElementById("menuList");
-      menu.classList.toggle("show");
-    }
+</div>
 
-    // Appointment form handling
-    const form = document.getElementById("appointmentForm");
-    const messageBox = document.getElementById("message");
+<script>
 
-    form.addEventListener("submit", function(event) {
-      event.preventDefault();
+// Sidebar toggle
+document.getElementById("toggleBtn").addEventListener("click", function () {
+    document.getElementById("sidebar").classList.toggle("collapsed");
+    document.getElementById("mainContent").classList.toggle("expanded");
+});
 
-      // Collect form data
-      const patientName = document.getElementById("patientName").value.trim();
-      const age = document.getElementById("age").value.trim();
-      const gender = document.getElementById("gender").value;
-      const doctor = document.getElementById("doctor").value;
-      const date = document.getElementById("date").value;
-      const time = document.getElementById("time").value;
-      const reason = document.getElementById("reason").value.trim();
+// Form logic (UNCHANGED)
+const form = document.getElementById("appointmentForm");
+const messageBox = document.getElementById("message");
 
-      // Validate fields
-      if (!patientName || !age || !gender || !doctor || !date || !time || !reason) {
-        messageBox.innerHTML = '<div class="error">Please fill out all fields!</div>';
-        return;
-      }
+form.addEventListener("submit", function(event) {
+  event.preventDefault();
 
-      // Create appointment object
-      const appointment = { patientName, age, gender, doctor, date, time, reason };
+  const patientName = document.getElementById("patientName").value.trim();
+  const age = document.getElementById("age").value.trim();
+  const gender = document.getElementById("gender").value;
+  const doctor = document.getElementById("doctor").value;
+  const date = document.getElementById("date").value;
+  const time = document.getElementById("time").value;
+  const reason = document.getElementById("reason").value.trim();
 
-      // Save appointment locally (for demo)
-      localStorage.setItem("latestAppointment", JSON.stringify(appointment));
+  if (!patientName || !age || !gender || !doctor || !date || !time || !reason) {
+    messageBox.innerHTML = '<div class="error">Please fill out all fields!</div>';
+    return;
+  }
 
-      // Show success message
-      messageBox.innerHTML = `
-        <div class="success">
-          Appointment booked successfully!<br><br>
-          <strong>${patientName}</strong> with <strong>${doctor}</strong><br>
-          on <strong>${date}</strong> at <strong>${time}</strong>.
-        </div>
-      `;
+  const appointment = { patientName, age, gender, doctor, date, time, reason };
 
-      // Reset form
-      form.reset();
-    });
-  </script>
+  let all = JSON.parse(localStorage.getItem("appointments")) || [];
+  all.push(appointment);
+  localStorage.setItem("appointments", JSON.stringify(all));
+
+  messageBox.innerHTML = `
+    <div class="success">
+      Appointment booked successfully!<br><br>
+      <strong>${patientName}</strong> with <strong>${doctor}</strong><br>
+      on <strong>${date}</strong> at <strong>${time}</strong>.
+    </div>
+  `;
+
+  form.reset();
+});
+
+</script>
 
 </body>
 </html>

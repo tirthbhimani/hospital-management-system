@@ -1,13 +1,53 @@
 <?php
 session_start();
-/*
-// Check login
-if (!isset($_SESSION['doctor_name'])) {
-    header("Location: index.php");
-    exit();
-}*/
+$con = new mysqli("localhost", "root", "", "HMS");
 
-$doctor_name = $_SESSION['username'];
+// GET USERNAME
+$username = $_SESSION['username'];
+
+// GET DOCTOR FULL NAME FROM doctor_info
+$doctor_name = "";
+$stmt = $con->prepare("SELECT dname FROM doctor_info WHERE username=?");
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($row = $result->fetch_assoc()) {
+    $doctor_name = $row['dname'];
+}
+
+// TODAY DATE
+$today = date("Y-m-d");
+
+// TODAY APPOINTMENTS
+$todayAppointments = 0;
+$stmt = $con->prepare("SELECT COUNT(*) as total FROM appointments WHERE doctor_name=? AND appointment_date=?");
+$stmt->bind_param("ss", $doctor_name, $today);
+$stmt->execute();
+$res = $stmt->get_result();
+if ($row = $res->fetch_assoc()) {
+    $todayAppointments = $row['total'];
+}
+
+// TOTAL PATIENTS (UNIQUE)
+$totalPatients = 0;
+$stmt = $con->prepare("SELECT COUNT(DISTINCT username) as total FROM appointments WHERE doctor_name=?");
+$stmt->bind_param("s", $doctor_name);
+$stmt->execute();
+$res = $stmt->get_result();
+if ($row = $res->fetch_assoc()) {
+    $totalPatients = $row['total'];
+}
+
+// PENDING APPOINTMENTS
+$pendingAppointments = 0;
+$stmt = $con->prepare("SELECT COUNT(*) as total FROM appointments WHERE doctor_name=? AND appointment_date>=?");
+$stmt->bind_param("ss", $doctor_name, $today);
+$stmt->execute();
+$res = $stmt->get_result();
+if ($row = $res->fetch_assoc()) {
+    $pendingAppointments = $row['total'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -29,10 +69,8 @@ $doctor_name = $_SESSION['username'];
 <div class="sidebar" id="sidebar">
     <h3>Doctor Panel</h3>
     <ul>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="my_patients.php">My Patients</a></li>
-        <li><a href="dr_appointments.php">Appointments</a></li>
-        <li><a href="#">Prescriptions</a></li>
+        <li><a href="doctor_home.php">Home</a></li>
+        <li><a href="dr_patients.php">My Patients</a></li>
         <li><a href="index.php">Logout</a></li>
     </ul>
 </div>
@@ -41,13 +79,23 @@ $doctor_name = $_SESSION['username'];
 <div class="main-content" id="mainContent">
 
     <!-- Doctor Info -->
-    <h1>Welcome Dr. <?php echo $doctor_name; ?></h1>
+    <h1>Welcome <?php echo $doctor_name; ?></h1>
 
-    <div class="cards">
-        <div class="card" id="totalPatients">Total Patients: 0</div>
-        <div class="card" id="totalAppointments">Appointments: 0</div>
-        <div class="card">Working Time: 10 AM - 5 PM</div>
+   <div class="cards">
+
+    <div class="card">
+        Today Appointments: <?php echo $todayAppointments; ?>
     </div>
+
+    <div class="card">
+        Total Patients: <?php echo $totalPatients; ?>
+    </div>
+
+    <div class="card">
+        Pending Appointments: <?php echo $pendingAppointments; ?>
+    </div>
+
+</div>
 
  
 
