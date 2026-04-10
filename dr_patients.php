@@ -115,7 +115,7 @@ $data = $stmt->get_result();
 <!-- MAIN CONTENT -->
 <div class="main-content" id="mainContent">
 
-<h2>Dr. <?php echo $doctor_name; ?></h2>
+<h2> <?php echo $doctor_name; ?></h2>
 
 <table border="1" width="100%">
 <tr>

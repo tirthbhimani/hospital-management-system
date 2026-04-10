@@ -3,6 +3,11 @@ session_start();
 
 $con = new mysqli("localhost", "root", "", "HMS");
 
+if (!isset($_SESSION['username'])) {
+    header("Location: index.php");
+    exit();
+}
+
 $username = $_SESSION['username'];
 
 // TOTAL APPOINTMENTS
@@ -34,7 +39,7 @@ $status = ($total > 0) ? "Under Treatment" : "Active";
 <html>
 <head>
     <title>Patient Dashboard</title>
-    <link rel="stylesheet" href="doctor_style.css">
+    <link rel="stylesheet" href="patient.css">
 </head>
 
 <body>
@@ -67,40 +72,16 @@ $status = ($total > 0) ? "Under Treatment" : "Active";
         <div class="card">Total Appointments: <?php echo $total; ?></div>
         <div class="card">Next Appointment: <?php echo $next_text; ?></div>
         <div class="card">Health Status: <?php echo $status; ?></div>
+    </div>
 
 </div>
 
 <script>
-
-// Sidebar toggle
+// ✅ ONLY TOGGLE CODE (clean, no errors)
 document.getElementById("toggleBtn").addEventListener("click", function () {
     document.getElementById("sidebar").classList.toggle("collapsed");
     document.getElementById("mainContent").classList.toggle("expanded");
 });
-
-// Load appointments
-let data = JSON.parse(localStorage.getItem("appointments")) || [];
-
-// Filter patient appointments
-let user = "<?php echo $patient_name; ?>";
-
-let myAppointments = data.filter(a => a.patientName === user);
-
-// Total count
-document.getElementById("totalAppointments").innerText =
-    "Total Appointments: " + myAppointments.length;
-
-// Find next appointment
-let today = new Date();
-
-let future = myAppointments.filter(a => new Date(a.date) >= today);
-
-if (future.length > 0) {
-    let next = future[0];
-    document.getElementById("nextAppointment").innerText =
-        "Next: " + next.date + " (" + next.time + ")";
-}
-
 </script>
 
 </body>

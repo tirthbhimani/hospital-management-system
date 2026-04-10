@@ -45,11 +45,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <title>Book Appointment</title>
 
   <!-- SAME CSS AS DASHBOARD -->
-  <link rel="stylesheet" href="doctor_style.css">
+  <link rel="stylesheet" href="book_appoinment.css">
 
   <!-- KEEP YOUR FORM STYLE EXACT -->
   <style>
     .container {
+      justify-item : center;
       max-width: 600px;
       margin: 40px auto;
       background: white;
@@ -59,8 +60,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     h2 {
+      padding-top : 12px;
       text-align: center;
-      color: #2193b0;
+      color: #eff4f5;
+    }
+    #h2{
+      color: #18c7eb;
     }
 
     label {
@@ -145,7 +150,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="main-content" id="mainContent">
 
   <div class="container">
-    <h2>Book Your Appointment</h2>
+    <h2 id="h2">Book Your Appointment</h2>
 
     <form method="POST" action="">
 
